@@ -12,35 +12,40 @@ class addontools (
   validate_re($ensure, '^(present|absent)$',
     "addontools::ensure is <${ensure}>. Must be present or absent.")
 
-  if $::virtual == 'physical' {
-    case $::osfamily {
-      'RedHat': {
-        case $::lsbmajdistrelease {
-          '5': {
-            package { 'OpenIPMI-tools':
-              ensure  => $packages_ensure,
+  case $::virtual {
+    'physical': {
+      case $::osfamily {
+        'RedHat': {
+          case $::lsbmajdistrelease {
+            '5': {
+              package { 'OpenIPMI-tools':
+                ensure  => $packages_ensure,
+              }
+            }
+            '6','7': {
+              package { 'ipmitool':
+                ensure => $packages_ensure,
+              }
+            }
+            default: {
+              fail("Unsupported RHEL version ${::lsbmajdistrelease}")
             }
           }
-          '6','7': {
-            package { 'ipmitool':
-              ensure => $packages_ensure,
-            }
+          package { 'addontools_required_packages':
+            ensure => $packages_ensure,
+            name   => $common_packages,
           }
-          default: {
-            fail("Unsupported RHEL version ${::lsbmajdistrelease}")
+          service { 'smartd':
+            ensure => $services_ensure,
           }
-        }
-        package { 'addontools_required_packages':
-          ensure => $packages_ensure,
-          name   => $common_packages,
-        }
-        service { 'smartd':
-          ensure => $services_ensure,
-        }
-        service { 'ipmi':
-          ensure => $services_ensure,
+          service { 'ipmi':
+            ensure => $services_ensure,
+          }
         }
       }
+    }
+    'vmware': {
+      include vmware
     }
   }
 }
