@@ -4,6 +4,7 @@
 #
 class addontools (
   $ensure                   = 'present',
+  $common_packages          = [ 'dmidecode', 'smartmontools', 'OpenIPMI' ],
   $packages_ensure          = 'installed',
   $services_ensure          = 'running',
 ) {
@@ -28,18 +29,18 @@ class addontools (
           default: {
             fail("Unsupported RHEL version ${::lsbmajdistrelease}")
           }
-          package { 'addontools_required_packages':
-            ensure => $packages_ensure,
-            name   => [ 'dmidecode', 'smartmontools', OpenIPMI' ],
-          }
-          service { 'addontools_required_services':
-            ensure => $services_ensure,
-            name   => [ 'smartd', 'ipmi' ]
-          }
+        }
+        package { 'addontools_required_packages':
+          ensure => $packages_ensure,
+          name   => $common_packages,
+        }
+        service { 'smartd':
+          ensure => $services_ensure,
+        }
+        service { 'ipmi':
+          ensure => $services_ensure,
         }
       }
-    }
-    default: {
     }
   }
 }
